@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: SpringToDo
+  datasource:
+    username: username
+    password: password
+    url: jdbc:postgresql://localhost:5432/task_db
+    driver-class-name: org.postgresql.Driver
+
+  cache:
+    type: redis
+
+  data:
+    redis:
+      host: localhost
+      timeout: 60000
+      database: 0
+      port: 6379
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
