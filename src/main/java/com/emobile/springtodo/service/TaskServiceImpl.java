@@ -34,9 +34,8 @@ public class TaskServiceImpl implements TaskService {
     public PageResponse<TaskDtoResponse> getAllTasks(int page, int size) {
 
         int offset = (page - 1) * size;
-        int limit = size;
 
-        List<TaskDtoResponse> tasks = taskRepository.findAll(limit, offset)
+        List<TaskDtoResponse> tasks = taskRepository.findAll(size, offset)
                 .stream()
                 .map(taskMapper::toDtoResponse)
                 .toList();
@@ -51,8 +50,7 @@ public class TaskServiceImpl implements TaskService {
 
         return taskMapper.toDtoResponse(
                 taskRepository.findById(id)
-                .orElseThrow( () -> new TaskNotFoundException("Task not found"))
-        );
+                .orElseThrow( () -> new TaskNotFoundException("Task not found")));
     }
 
     @Transactional
@@ -80,19 +78,16 @@ public class TaskServiceImpl implements TaskService {
         taskEntity.setDescription(
                 Optional.ofNullable(task.getDescription())
                         .filter(s -> !s.isEmpty())
-                        .orElse(taskEntity.getDescription())
-        );
+                        .orElse(taskEntity.getDescription()));
 
         taskEntity.setTitle(
                 Optional.ofNullable(task.getTitle())
                         .filter(s -> !s.isEmpty())
-                        .orElse(taskEntity.getTitle())
-                );
+                        .orElse(taskEntity.getTitle()));
 
         taskEntity.setStatus(
                 Optional.ofNullable(task.getStatus())
-                        .orElse(taskEntity.getStatus())
-        );
+                        .orElse(taskEntity.getStatus()));
 
         taskRepository.update(taskEntity);
 

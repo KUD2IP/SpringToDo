@@ -1,4 +1,4 @@
-package com.emobile.springtodo.contreoller;
+package com.emobile.springtodo.controller;
 
 import com.emobile.springtodo.dto.ExceptionResponse;
 import com.emobile.springtodo.exception.TaskNotFoundException;
@@ -20,8 +20,7 @@ public class GlobalExceptionHandler {
                                 .status(HttpStatus.NOT_FOUND.value())
                                 .message(e.getMessage())
                                 .timestamp(Instant.now())
-                                .build()
-                );
+                                .build());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -32,8 +31,7 @@ public class GlobalExceptionHandler {
                                 .status(HttpStatus.BAD_REQUEST.value())
                                 .message(e.getMessage())
                                 .timestamp(Instant.now())
-                                .build()
-                );
+                                .build());
     }
 
     @ExceptionHandler(Exception.class)
@@ -45,7 +43,6 @@ public class GlobalExceptionHandler {
                                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                                 .message(e.getMessage())
                                 .timestamp(Instant.now())
-                                .build()
-                );
+                                .build());
     }
 }

@@ -1,4 +1,4 @@
-package com.emobile.springtodo.contreoller;
+package com.emobile.springtodo.controller;
 
 import com.emobile.springtodo.dto.ExceptionResponse;
 import com.emobile.springtodo.dto.PageResponse;
