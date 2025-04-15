@@ -2,6 +2,7 @@ package com.emobile.springtodo.repository;
 
 import com.emobile.springtodo.model.entity.Status;
 import com.emobile.springtodo.model.entity.Task;
+import org.hibernate.Session;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -17,7 +18,7 @@ public class TaskRepositoryTest extends AbstractTestContainers{
     private final TaskRepository taskRepository;
 
     public TaskRepositoryTest() {
-        this.taskRepository = new TaskRepositoryImpl(new JdbcTemplate(dataSource));
+        this.taskRepository = new TaskRepositoryImpl(sessionFactory);
     }
 
     private LocalDateTime now = LocalDateTime.now();

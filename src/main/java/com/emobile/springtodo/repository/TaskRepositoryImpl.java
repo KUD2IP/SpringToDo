@@ -1,10 +1,9 @@
 package com.emobile.springtodo.repository;
 
-import com.emobile.springtodo.model.entity.Status;
 import com.emobile.springtodo.model.entity.Task;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,71 +13,104 @@ import java.util.Optional;
 @Repository
 public class TaskRepositoryImpl implements TaskRepository {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final SessionFactory sessionFactory;
 
-    public TaskRepositoryImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public TaskRepositoryImpl(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
 
     @Override
     public void save(Task task) {
-        String sql = "INSERT INTO task_t (title, description, status, created_at) VALUES (?,?,?,?) RETURNING id";
-        Long generatedId = jdbcTemplate.queryForObject(
-                sql,
-                Long.class,
-                task.getTitle(),
-                task.getDescription(),
-                task.getStatus().name(),
-                task.getCreatedAt()
-        );
 
-        task.setId(generatedId);
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        Long generateId = session.merge(task).getId();
+        log.info("Saving task: {}", task);
+
+        session.getTransaction().commit();
+        session.close();
+
+        task.setId(generateId);
     }
 
     @Override
     public Optional<Task> findById(Long id) {
-        String sql = "SELECT * FROM task_t WHERE id = ?";
-        List<Task> task = jdbcTemplate.query(sql, rowMapper(), id);
-        return task.stream().findFirst();
+
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        Task task = session.get(Task.class, id);
+        log.info("Found task: {}", task);
+
+        session.getTransaction().commit();
+        session.close();
+
+        return Optional.ofNullable(task);
     }
 
     @Override
     public List<Task> findAll() {
-        String sql = "SELECT * FROM task_t ORDER BY id ASC";
-        return jdbcTemplate.query(sql, rowMapper());
+
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        List<Task> tasks = session.createQuery("from Task", Task.class).stream().toList();
+        log.info("Found {} tasks", tasks.size());
+
+        session.getTransaction().commit();
+        session.close();
+
+        return tasks;
     }
 
     @Override
     public void deleteById(Long id) {
-        String sql = "DELETE FROM task_t WHERE id = ?";
-        jdbcTemplate.update(sql, id);
+
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        Task task = session.get(Task.class, id);
+        if (task != null) {
+            session.remove(task);
+            log.info("Deleted task: {}", task);
+        }
+
+        session.getTransaction().commit();
+        session.close();
+
     }
 
     @Override
     public void update(Task task) {
-        String sql = "UPDATE task_t SET title = ?, description = ?, status = ? WHERE id = ?";
-        jdbcTemplate.update(
-                sql,
-                task.getTitle(),
-                task.getDescription(),
-                task.getStatus().name(),
-                task.getId()
-        );
+
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        session.merge(task);
+        log.info("Updating task: {}", task);
+
+        session.getTransaction().commit();
+        session.close();
+
     }
 
     @Override
     public List<Task> findAll(int limit, int offset) {
-        String sql = "SELECT * FROM task_t LIMIT ? OFFSET ?";
-        return jdbcTemplate.query(sql, rowMapper(), limit, offset);
-    }
 
-    private RowMapper<Task> rowMapper(){
-        return (rs, rowNum) -> new Task(
-                rs.getLong("id"),
-                rs.getString("title"),
-                rs.getString("description"),
-                Status.valueOf((String) rs.getObject("status")),
-                rs.getTimestamp("created_at").toLocalDateTime()
-        );
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        List<Task> tasks = session.createQuery("from Task", Task.class)
+                .setFirstResult(offset)
+                .setMaxResults(limit)
+                .list();
+
+        log.info("Found {} tasks", tasks.size());
+
+        session.getTransaction().commit();
+        session.close();
+
+        return tasks;
     }
 }
