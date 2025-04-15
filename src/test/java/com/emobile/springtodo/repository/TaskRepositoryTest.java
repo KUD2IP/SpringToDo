@@ -2,103 +2,114 @@ package com.emobile.springtodo.repository;
 
 import com.emobile.springtodo.model.entity.Status;
 import com.emobile.springtodo.model.entity.Task;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
+@DataJpaTest
+@Import(AbstractTestContainers.class)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Transactional
+public class TaskRepositoryTest extends AbstractTestContainers {
 
-public class TaskRepositoryTest extends AbstractTestContainers{
+    @Autowired
+    private TaskRepository taskRepository;
 
-    private final TaskRepository taskRepository;
+    @PersistenceContext
+    private EntityManager entityManager;
 
-    public TaskRepositoryTest() {
-        this.taskRepository = new TaskRepositoryImpl(new JdbcTemplate(dataSource));
+    private final LocalDateTime now = LocalDateTime.now();
+
+    private Task createTask(String title, String description) {
+        return Task.builder()
+                .title(title)
+                .description(description)
+                .status(Status.IN_PROGRESS)
+                .createdAt(now)
+                .build();
     }
 
-    private LocalDateTime now = LocalDateTime.now();
-
-    private Task task = Task.builder()
-            .id(null)
-            .title("Title1")
-            .description("Description1")
-            .status(Status.IN_PROGRESS)
-            .createdAt(now)
-            .build();
+    @BeforeEach
+    void setUp() {
+        entityManager.createNativeQuery("TRUNCATE TABLE task RESTART IDENTITY CASCADE").executeUpdate();
+    }
 
     @Test
     void testFindAll() {
-        taskRepository.save(task);
+        Task task1 = createTask("Title1", "Description1");
+        Task task2 = createTask("Title2", "Description2");
 
-        taskRepository.save(Task.builder()
-                        .id(null)
-                .title("Title2")
-                .description("Description2")
-                .status(Status.IN_PROGRESS)
-                .createdAt(now)
-                .build()
-        );
+        taskRepository.save(task1);
+        taskRepository.save(task2);
+        entityManager.flush();
 
-        List<Task> todos = taskRepository.findAll(10, 0);
+        List<Task> tasks = taskRepository.findAll(10, 0);
 
-        assertEquals(2, todos.size());
-        assertEquals("Title1", todos.get(0).getTitle());
-        assertEquals("Title2", todos.get(1).getTitle());
+        assertEquals(2, tasks.size());
     }
 
     @Test
     void testFindById() {
+        Task task = createTask("Title1", "Description1");
         taskRepository.save(task);
+        entityManager.flush();
 
-        Task tasks = taskRepository.findById(task.getId()).get();
+        Task found = taskRepository.findById(task.getId()).orElseThrow();
 
-        assertEquals(1L, tasks.getId() );
-        assertEquals("Title1", tasks.getTitle());
-        assertEquals("Description1", tasks.getDescription());
-        assertEquals(Status.IN_PROGRESS, tasks.getStatus());
+        assertEquals(1L, found.getId());
+        assertEquals("Title1", found.getTitle());
+        assertEquals(Status.IN_PROGRESS, found.getStatus());
     }
 
     @Test
     void testSave() {
-        taskRepository.save(task);
+        Task task = createTask("Title1", "Description1");
+        Task saved = taskRepository.save(task);
+        entityManager.flush();
 
-        assertEquals(1L, task.getId());
+        assertEquals(1L, saved.getId());
+        assertEquals(1, taskRepository.count());
     }
 
     @Test
     void testUpdate() {
+        Task task = createTask("Title1", "Description1");
         taskRepository.save(task);
+        entityManager.flush();
 
-        Task updatedTask = Task.builder()
-                .id(task.getId())
-                .title("NewTitle")
-                .description(task.getDescription())
-                .status(Status.COMPLETED)
-                .createdAt(task.getCreatedAt())
-                .build();
+        task.setTitle("UpdatedTitle");
+        task.setStatus(Status.COMPLETED);
+        Task updated = taskRepository.save(task);
+        entityManager.flush();
 
-        taskRepository.update(updatedTask);
-
-        Task findTask = taskRepository.findById(updatedTask.getId()).get();
-
-        assertEquals(1L, findTask.getId());
-        assertEquals("NewTitle", findTask.getTitle());
-        assertEquals("Description1", findTask.getDescription());
-        assertEquals(Status.COMPLETED, findTask.getStatus());
+        Task found = entityManager.find(Task.class, updated.getId());
+        assertEquals(1L, found.getId());
+        assertEquals("UpdatedTitle", found.getTitle());
+        assertEquals(Status.COMPLETED, found.getStatus());
     }
 
     @Test
     void testDelete() {
+        Task task = createTask("Title1", "Description1");
         taskRepository.save(task);
+        entityManager.flush();
 
         taskRepository.deleteById(task.getId());
+        entityManager.flush();
 
-        Optional<Task> findTask = taskRepository.findById(task.getId());
-
-        assertTrue(findTask.isEmpty());
+        assertFalse(taskRepository.existsById(task.getId()));
+        assertEquals(0, taskRepository.count());
     }
 }

@@ -7,6 +7,11 @@ spring:
     url: jdbc:postgresql://localhost:5432/task_db
     driver-class-name: org.postgresql.Driver
 
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: true
+
   cache:
     type: redis
 

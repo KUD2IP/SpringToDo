@@ -1,9 +1,9 @@
 package com.emobile.springtodo.repository;
 
+import com.zaxxer.hikari.HikariDataSource;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -14,35 +14,39 @@ import javax.sql.DataSource;
 public class AbstractTestContainers {
 
     @Container
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest")
+    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
             .withDatabaseName("task_db")
             .withUsername("testusername")
             .withPassword("testpassword");
 
     protected static DataSource dataSource;
+    protected static JdbcTemplate jdbcTemplate;
 
     @BeforeAll
     static void setup() {
-        DriverManagerDataSource ds = new DriverManagerDataSource();
-        ds.setUrl(postgres.getJdbcUrl());
+        HikariDataSource ds = new HikariDataSource();
+        ds.setJdbcUrl(postgres.getJdbcUrl());
         ds.setUsername(postgres.getUsername());
         ds.setPassword(postgres.getPassword());
+        ds.setMaximumPoolSize(5);
         dataSource = ds;
+        jdbcTemplate = new JdbcTemplate(dataSource);
 
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-        jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS task_t ("
-                        + "id SERIAL PRIMARY KEY, "
-                        + "title VARCHAR(255) NOT NULL, "
-                        + "description TEXT, "
-                        + "status VARCHAR(255) NOT NULL, "
-                        + "created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
-                        + ")");
+        jdbcTemplate.execute("""
+            DROP TABLE IF EXISTS task;
+            CREATE TABLE task (
+                id SERIAL PRIMARY KEY,
+                title VARCHAR(255) NOT NULL,
+                description TEXT,
+                status VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """);
     }
 
-    @BeforeEach
-    void cleanup() {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-        jdbcTemplate.execute("TRUNCATE TABLE task_t RESTART IDENTITY CASCADE");
+    @AfterEach
+    void cleanUp() {
+        jdbcTemplate.update("DELETE FROM task");
+        jdbcTemplate.execute("ALTER SEQUENCE task_id_seq RESTART WITH 1");
     }
 }
