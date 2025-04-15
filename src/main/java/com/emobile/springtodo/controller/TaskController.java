@@ -1,10 +1,10 @@
 package com.emobile.springtodo.controller;
 
-import com.emobile.springtodo.dto.ExceptionResponse;
-import com.emobile.springtodo.dto.PageResponse;
-import com.emobile.springtodo.dto.TaskDtoRequest;
-import com.emobile.springtodo.dto.TaskDtoResponse;
-import com.emobile.springtodo.service.TaskService;
+import com.emobile.springtodo.exception.dto.response.ExceptionResponse;
+import com.emobile.springtodo.model.dto.response.PageResponse;
+import com.emobile.springtodo.model.dto.request.TaskRequest;
+import com.emobile.springtodo.model.dto.response.TaskResponse;
+import com.emobile.springtodo.service.contract.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -46,13 +46,13 @@ public class TaskController {
             }
     )
     @PostMapping("/add")
-    public ResponseEntity<TaskDtoResponse> addTask(
-           @Valid @RequestBody TaskDtoRequest taskDtoRequest
+    public ResponseEntity<TaskResponse> addTask(
+           @Valid @RequestBody TaskRequest taskRequest
     ) {
 
-        TaskDtoResponse taskDtoResponse = taskService.addTask(taskDtoRequest);
+        TaskResponse taskResponse = taskService.addTask(taskRequest);
 
-        return ResponseEntity.status(201).body(taskDtoResponse);
+        return ResponseEntity.status(201).body(taskResponse);
     }
 
     @Operation(
@@ -76,7 +76,7 @@ public class TaskController {
             }
     )
     @GetMapping
-    public ResponseEntity<PageResponse<TaskDtoResponse>> getAllTasks(
+    public ResponseEntity<PageResponse<TaskResponse>> getAllTasks(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -100,7 +100,7 @@ public class TaskController {
             }
     )
     @GetMapping("/{taskId}")
-    public ResponseEntity<TaskDtoResponse> getTaskById(
+    public ResponseEntity<TaskResponse> getTaskById(
             @PathVariable Long taskId
     ){
         return ResponseEntity.ok(taskService.getTaskById(taskId));
@@ -130,11 +130,11 @@ public class TaskController {
             }
     )
     @PatchMapping("/{taskId}")
-    public ResponseEntity<TaskDtoResponse> updateTask(
+    public ResponseEntity<TaskResponse> updateTask(
             @PathVariable Long taskId,
-            @Valid @RequestBody TaskDtoRequest taskDtoRequest
+            @Valid @RequestBody TaskRequest taskRequest
     ){
-        return ResponseEntity.ok(taskService.updateTask(taskId, taskDtoRequest));
+        return ResponseEntity.ok(taskService.updateTask(taskId, taskRequest));
     }
 
     @Operation(
@@ -150,7 +150,7 @@ public class TaskController {
             }
     )
     @DeleteMapping("/{taskId}")
-    public ResponseEntity<TaskDtoResponse> deleteTask(
+    public ResponseEntity<TaskResponse> deleteTask(
             @PathVariable Long taskId
     ){
         taskService.deleteTask(taskId);

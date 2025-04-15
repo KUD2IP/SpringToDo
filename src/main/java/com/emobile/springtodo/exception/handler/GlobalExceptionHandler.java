@@ -1,6 +1,6 @@
-package com.emobile.springtodo.controller;
+package com.emobile.springtodo.exception.handler;
 
-import com.emobile.springtodo.dto.ExceptionResponse;
+import com.emobile.springtodo.exception.dto.response.ExceptionResponse;
 import com.emobile.springtodo.exception.TaskNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

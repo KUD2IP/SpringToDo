@@ -1,6 +1,6 @@
-package com.emobile.springtodo.dto;
+package com.emobile.springtodo.model.dto.response;
 
-import com.emobile.springtodo.entity.Status;
+import com.emobile.springtodo.model.entity.Status;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -11,7 +11,7 @@ import java.io.Serializable;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TaskDtoResponse implements Serializable {
+public class TaskResponse implements Serializable {
 
     @Schema(description = "Уникальный идентификатор задачи.", example = "1")
     private Long id;

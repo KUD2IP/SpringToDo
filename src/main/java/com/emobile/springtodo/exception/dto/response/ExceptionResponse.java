@@ -1,4 +1,4 @@
-package com.emobile.springtodo.dto;
+package com.emobile.springtodo.exception.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;

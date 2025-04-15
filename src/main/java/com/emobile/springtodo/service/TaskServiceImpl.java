@@ -1,12 +1,13 @@
 package com.emobile.springtodo.service;
 
-import com.emobile.springtodo.dto.PageResponse;
-import com.emobile.springtodo.dto.TaskDtoRequest;
-import com.emobile.springtodo.dto.TaskDtoResponse;
-import com.emobile.springtodo.entity.Task;
+import com.emobile.springtodo.model.dto.response.PageResponse;
+import com.emobile.springtodo.model.dto.request.TaskRequest;
+import com.emobile.springtodo.model.dto.response.TaskResponse;
+import com.emobile.springtodo.model.entity.Task;
 import com.emobile.springtodo.exception.TaskNotFoundException;
-import com.emobile.springtodo.mapper.TaskMapper;
+import com.emobile.springtodo.model.mapper.contract.TaskMapper;
 import com.emobile.springtodo.repository.TaskRepository;
+import com.emobile.springtodo.service.contract.TaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -31,11 +32,11 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional(readOnly = true)
     @Override
-    public PageResponse<TaskDtoResponse> getAllTasks(int page, int size) {
+    public PageResponse<TaskResponse> getAllTasks(int page, int size) {
 
         int offset = (page - 1) * size;
 
-        List<TaskDtoResponse> tasks = taskRepository.findAll(size, offset)
+        List<TaskResponse> tasks = taskRepository.findAll(size, offset)
                 .stream()
                 .map(taskMapper::toDtoResponse)
                 .toList();
@@ -46,7 +47,7 @@ public class TaskServiceImpl implements TaskService {
     @Transactional(readOnly = true)
     @Cacheable(value = "tasks", key = "#id")
     @Override
-    public TaskDtoResponse getTaskById(Long id) {
+    public TaskResponse getTaskById(Long id) {
 
         return taskMapper.toDtoResponse(
                 taskRepository.findById(id)
@@ -55,7 +56,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional
     @Override
-    public TaskDtoResponse addTask(TaskDtoRequest task) {
+    public TaskResponse addTask(TaskRequest task) {
 
         if (task.getTitle() == null || task.getTitle().isEmpty()) {
             task.setTitle("Task Title");
@@ -70,7 +71,7 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     @CachePut(value = "tasks", key = "#id")
     @Override
-    public TaskDtoResponse updateTask(Long id, TaskDtoRequest task) {
+    public TaskResponse updateTask(Long id, TaskRequest task) {
 
         Task taskEntity = taskRepository.findById(id)
                 .orElseThrow( () -> new TaskNotFoundException("Task not found"));

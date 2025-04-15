@@ -1,6 +1,6 @@
 package com.emobile.springtodo.repository;
 
-import com.emobile.springtodo.entity.Task;
+import com.emobile.springtodo.model.entity.Task;
 
 import java.util.List;
 

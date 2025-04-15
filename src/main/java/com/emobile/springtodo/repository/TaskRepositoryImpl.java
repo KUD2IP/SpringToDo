@@ -1,7 +1,7 @@
 package com.emobile.springtodo.repository;
 
-import com.emobile.springtodo.entity.Status;
-import com.emobile.springtodo.entity.Task;
+import com.emobile.springtodo.model.entity.Status;
+import com.emobile.springtodo.model.entity.Task;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;

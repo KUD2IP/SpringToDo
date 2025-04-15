@@ -1,6 +1,6 @@
-package com.emobile.springtodo.dto;
+package com.emobile.springtodo.model.dto.request;
 
-import com.emobile.springtodo.entity.Status;
+import com.emobile.springtodo.model.entity.Status;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TaskDtoRequest implements Serializable {
+public class TaskRequest implements Serializable {
 
     @Size(max = 50, message = "Длина названия должна составлять не более 25 символов")
     @Schema(description = "Название задачи.", example = "Сделать зарядку", maxLength = 25)

@@ -1,4 +1,4 @@
-package com.emobile.springtodo.entity;
+package com.emobile.springtodo.model.entity;
 
 import lombok.*;
 

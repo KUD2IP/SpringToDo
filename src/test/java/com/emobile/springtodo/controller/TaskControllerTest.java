@@ -1,10 +1,10 @@
 package com.emobile.springtodo.controller;
 
-import com.emobile.springtodo.dto.PageResponse;
-import com.emobile.springtodo.dto.TaskDtoRequest;
-import com.emobile.springtodo.dto.TaskDtoResponse;
-import com.emobile.springtodo.entity.Status;
-import com.emobile.springtodo.service.TaskService;
+import com.emobile.springtodo.model.dto.response.PageResponse;
+import com.emobile.springtodo.model.dto.request.TaskRequest;
+import com.emobile.springtodo.model.dto.response.TaskResponse;
+import com.emobile.springtodo.model.entity.Status;
+import com.emobile.springtodo.service.contract.TaskService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,13 +43,13 @@ public class TaskControllerTest {
 
     private final LocalDateTime now = LocalDateTime.now();
 
-    private final TaskDtoRequest taskDtoRequest = TaskDtoRequest.builder()
+    private final TaskRequest taskRequest = TaskRequest.builder()
             .title("title")
             .description("description")
             .status(Status.IN_PROGRESS)
             .build();
 
-    private final TaskDtoResponse task = TaskDtoResponse.builder()
+    private final TaskResponse task = TaskResponse.builder()
             .id(1L)
             .title("title")
             .description("description")
@@ -61,18 +61,18 @@ public class TaskControllerTest {
     @Test
     void testAddTask() throws Exception {
 
-        when(taskService.addTask(any(TaskDtoRequest.class))).thenReturn(task);
+        when(taskService.addTask(any(TaskRequest.class))).thenReturn(task);
 
         mockMvc.perform(post("/task/add")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(taskDtoRequest))
+                    .content(objectMapper.writeValueAsString(taskRequest))
                 )
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.title").value("title"));
 
-        verify(taskService, times(1)).addTask(any(TaskDtoRequest.class));
+        verify(taskService, times(1)).addTask(any(TaskRequest.class));
     }
 
 
@@ -93,14 +93,14 @@ public class TaskControllerTest {
 
     @Test
     void testGetAllTasks() throws Exception {
-        TaskDtoResponse task2 = TaskDtoResponse.builder()
+        TaskResponse task2 = TaskResponse.builder()
                 .id(2L)
                 .title("title2")
                 .description("description2")
                 .status(Status.IN_PROGRESS)
                 .createdAt(now.toString())
                 .build();
-        PageResponse<TaskDtoResponse> tasks = new PageResponse<>(List.of(task, task2), 1, 2);
+        PageResponse<TaskResponse> tasks = new PageResponse<>(List.of(task, task2), 1, 2);
 
         when(taskService.getAllTasks(1, 2)).thenReturn(tasks);
 
@@ -119,7 +119,7 @@ public class TaskControllerTest {
 
     @Test
     void testUpdateTask() throws Exception {
-        TaskDtoResponse updateTask = TaskDtoResponse.builder()
+        TaskResponse updateTask = TaskResponse.builder()
                 .id(1L)
                 .title("titleUpdate")
                 .description("descriptionUpdate")
@@ -127,11 +127,11 @@ public class TaskControllerTest {
                 .createdAt(now.toString())
                 .build();
 
-        when(taskService.updateTask(eq(1L), any(TaskDtoRequest.class))).thenReturn(updateTask);
+        when(taskService.updateTask(eq(1L), any(TaskRequest.class))).thenReturn(updateTask);
 
         mockMvc.perform(patch("/task/{id}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(TaskDtoRequest.builder().title("titleUpdate").description("descriptionUpdate").build()))
+                        .content(objectMapper.writeValueAsString(TaskRequest.builder().title("titleUpdate").description("descriptionUpdate").build()))
                 )
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -140,7 +140,7 @@ public class TaskControllerTest {
                 .andExpect(jsonPath("$.description").value("descriptionUpdate"))
                 .andExpect(jsonPath("$.status").value(Status.IN_PROGRESS.toString()));
 
-        verify(taskService, times(1)).updateTask(eq(1L), any(TaskDtoRequest.class));
+        verify(taskService, times(1)).updateTask(eq(1L), any(TaskRequest.class));
     }
 
     @Test
