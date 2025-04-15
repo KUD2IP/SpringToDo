@@ -14,7 +14,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class TaskRequest implements Serializable {
 
-    @Size(max = 50, message = "Длина названия должна составлять не более 25 символов")
+    @Size(max = 50, message = "Длина названия должна составлять не более 50 символов")
     @Schema(description = "Название задачи.", example = "Сделать зарядку", maxLength = 25)
     private String title;
 
