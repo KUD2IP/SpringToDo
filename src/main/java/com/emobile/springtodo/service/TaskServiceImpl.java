@@ -90,7 +90,7 @@ public class TaskServiceImpl implements TaskService {
                 Optional.ofNullable(task.getStatus())
                         .orElse(taskEntity.getStatus()));
 
-        taskRepository.update(taskEntity);
+        taskRepository.save(taskEntity);
 
         return taskMapper.toDtoResponse(taskEntity);
     }
