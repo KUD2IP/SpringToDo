@@ -8,9 +8,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,10 +18,10 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-@DataJpaTest
-@Import(AbstractTestContainers.class)
+@SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Transactional
+@Testcontainers
 public class TaskRepositoryTest extends AbstractTestContainers {
 
     @Autowired
@@ -43,7 +43,10 @@ public class TaskRepositoryTest extends AbstractTestContainers {
 
     @BeforeEach
     void setUp() {
+        entityManager.flush();
+        entityManager.clear();
         entityManager.createNativeQuery("TRUNCATE TABLE task RESTART IDENTITY CASCADE").executeUpdate();
+        entityManager.flush();
     }
 
     @Test
@@ -53,7 +56,6 @@ public class TaskRepositoryTest extends AbstractTestContainers {
 
         taskRepository.save(task1);
         taskRepository.save(task2);
-        entityManager.flush();
 
         List<Task> tasks = taskRepository.findAll(10, 0);
 
@@ -64,7 +66,6 @@ public class TaskRepositoryTest extends AbstractTestContainers {
     void testFindById() {
         Task task = createTask("Title1", "Description1");
         taskRepository.save(task);
-        entityManager.flush();
 
         Task found = taskRepository.findById(task.getId()).orElseThrow();
 
@@ -77,7 +78,6 @@ public class TaskRepositoryTest extends AbstractTestContainers {
     void testSave() {
         Task task = createTask("Title1", "Description1");
         Task saved = taskRepository.save(task);
-        entityManager.flush();
 
         assertEquals(1L, saved.getId());
         assertEquals(1, taskRepository.count());
@@ -88,11 +88,11 @@ public class TaskRepositoryTest extends AbstractTestContainers {
         Task task = createTask("Title1", "Description1");
         taskRepository.save(task);
         entityManager.flush();
+        entityManager.clear();
 
         task.setTitle("UpdatedTitle");
         task.setStatus(Status.COMPLETED);
         Task updated = taskRepository.save(task);
-        entityManager.flush();
 
         Task found = entityManager.find(Task.class, updated.getId());
         assertEquals(1L, found.getId());

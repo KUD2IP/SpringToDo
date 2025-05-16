@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = "kudzip/spring-to-do"
+        DOCKER_TAG = "latest"
+        DOCKER_CREDENTIALS = credentials('spring_todo')
+
+        DOCKER_HOST = "unix:///var/run/docker.sock"
+        TESTCONTAINERS_RYUK_DISABLED = "true"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean install -DskipTests'
+            }
+        }
+
+//         stage('Test') {
+//             steps {
+//                 sh 'mvn clean test "-Dspring.profiles.active=test"'
+//             }
+//         }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'spring_todo') {
+                        docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline finished with status: ${currentBuild.result ?: 'SUCCESS'}"
+        }
+    }
+}
