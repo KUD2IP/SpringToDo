@@ -2,9 +2,6 @@ spring:
   application:
     name: SpringToDo
   datasource:
-    username: ${ENV_PG_USERNAME}
-    password: ${ENV_PG_PASSWORD}
-    url: ${ENV_PG_URL}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -15,16 +12,11 @@ spring:
   cache:
     type: redis
 
-  data:
-    redis:
-      host: ${ENV_REDIS_HOST}
-      timeout: 60000
-      database: 0
-      port: 6379
-
   flyway:
     enabled: false
     locations: classpath:db/migration
     baseline-on-migrate: true
-server:
-  port: 8082
+
+logging:
+  level:
+    sql: debug

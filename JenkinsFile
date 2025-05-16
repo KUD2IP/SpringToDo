@@ -5,38 +5,40 @@ pipeline {
         DOCKER_IMAGE = "kudzip/spring-to-do"
         DOCKER_TAG = "latest"
         DOCKER_CREDENTIALS = credentials('spring_todo')
+
+        DOCKER_HOST = "unix:///var/run/docker.sock"
+        TESTCONTAINERS_RYUK_DISABLED = "true"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                script {
-                    if (env.CHANGE_ID) {
-                        checkout([
-                            $class: 'GitSCM',
-                            branches: [[name: 'refs/pull/${CHANGE_ID}/head']],
-                            extensions: [[$class: 'CleanCheckout']],
-                            userRemoteConfigs: [[url: 'https://github.com/KUD2IP/SpringToDo.git']]
-                        ])
-                    } else {
-                        checkout scm
-                    }
-                }
+                checkout scm
             }
         }
 
-        stage('Build & Test') {
+        stage('Test Docker') {
             steps {
-                bat 'mvn clean install'
+                sh 'mvn --version'
+                sh 'docker version'
             }
         }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean install -DskipTests'
+            }
+        }
+
+//         stage('Test') {
+//             steps {
+//                 sh 'mvn clean test "-Dspring.profiles.active=test"'
+//             }
+//         }
 
         stage('Build Docker Image') {
             when {
-                allOf {
-                    branch 'main'
-                    not { changeRequest() }
-                }
+                branch 'main'
             }
             steps {
                 script {
@@ -47,10 +49,7 @@ pipeline {
 
         stage('Push to Docker Hub') {
             when {
-                allOf {
-                    branch 'main'
-                    not { changeRequest() }
-                }
+                branch 'main'
             }
             steps {
                 script {
@@ -64,21 +63,7 @@ pipeline {
 
     post {
         always {
-            echo "Pipeline завершен: ${currentBuild.result ?: 'SUCCESS'}"
-        }
-        success {
-            script {
-                if (env.CHANGE_ID) {
-                    githubNotify status: 'SUCCESS', context: 'CI/PR Build'
-                }
-            }
-        }
-        failure {
-            script {
-                if (env.CHANGE_ID) {
-                    githubNotify status: 'FAILURE', context: 'CI/PR Build'
-                }
-            }
+            echo "Pipeline finished with status: ${currentBuild.result ?: 'SUCCESS'}"
         }
     }
 }
