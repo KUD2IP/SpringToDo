@@ -8,6 +8,8 @@ services:
       - POSTGRES_DB=task_db
       - POSTGRES_USER=username
       - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - spring
   redis:
@@ -35,6 +37,9 @@ services:
       - spring
     volumes:
       - ./target:/app/target
+
+volumes:
+  postgres_data:
 
 networks:
   spring:
